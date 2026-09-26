@@ -1,5 +1,5 @@
 from flask import Flask, redirect, request
-from database import get_match, create_short_link
+from database import get_match, create_short_link, log_click
 
 app = Flask(__name__)
 
@@ -9,10 +9,12 @@ def home():
 
 @app.route("/<code>")
 def redirect_to_url(code):
-    url = get_match(code)
-    if url:
-        return redirect(url)
-    return "Short link not found."
+    result = get_match(code)
+    if result is None:
+        return "Short link not found."
+    link_id, url = result
+    log_click(link_id)
+    return redirect(url)
 
 @app.route("/create", methods=["POST"])
 def create():

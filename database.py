@@ -15,6 +15,12 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS links(
 )
 """)
 
+cursor.execute("""CREATE TABLE IF NOT EXISTS clicks(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    link_id INTEGER,
+                    clicked_at TEXT,
+                    FOREIGN KEY (link_id) REFERENCES links(id))""")
+
 connection.commit()
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -40,8 +46,15 @@ def create_short_link(url):
             continue
 
 def get_match(code):
-    cursor.execute("SELECT url FROM links WHERE short_code = ?", (code,))
+    cursor.execute("SELECT id, url FROM links WHERE short_code = ?", (code,))
     result = cursor.fetchone()
     if result is None:
         return None
-    return result[0]
+    return result
+
+def log_click(link_id):
+    cursor.execute("INSERT INTO clicks(link_id, clicked_at) values (?,?)",(link_id, datetime.now().isoformat()))
+    connection.commit()
+
+cursor.execute("SELECT * FROM clicks")
+print(cursor.fetchall())
