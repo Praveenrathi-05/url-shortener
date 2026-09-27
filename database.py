@@ -56,5 +56,9 @@ def log_click(link_id):
     cursor.execute("INSERT INTO clicks(link_id, clicked_at) values (?,?)",(link_id, datetime.now().isoformat()))
     connection.commit()
 
-cursor.execute("SELECT * FROM clicks")
-print(cursor.fetchall())
+def get_click_counts():
+    cursor.execute("""SELECT links.url, COUNT(clicks.id) as click_count
+                    FROM links LEFT JOIN clicks ON clicks.link_id = links.id 
+                    GROUP BY links.id""")
+    return cursor.fetchall()
+
