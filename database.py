@@ -62,3 +62,11 @@ def get_click_counts():
                     GROUP BY links.id""")
     return cursor.fetchall()
 
+def get_top_links_by_clicks(limit):
+    cursor.execute("""SELECT links.url, COUNT(clicks.id) as click_count
+                    FROM links LEFT JOIN clicks ON clicks.link_id = links.id 
+                    GROUP BY links.id ORDER BY click_count DESC LIMIT ?""",(limit,))
+    return cursor.fetchall()
+
+if __name__ == "__main__":
+    print(get_top_links_by_clicks(2))
