@@ -1,5 +1,5 @@
 from flask import Flask, redirect, request
-from database import get_match, create_short_link, log_click, get_top_links_by_clicks
+from database import get_match, create_short_link, log_click, get_top_links_by_clicks, delete_link
 
 app = Flask(__name__)
 
@@ -22,6 +22,15 @@ def create():
     url = data["url"]
     code = create_short_link(url)
     return {"short_code": code}
+
+@app.route("/<code>", methods = ["DELETE"])
+def delete(code):
+    result = get_match(code)
+    if result is None:
+        return "Short link not found."
+    link_id, _ = result
+    delete_link(link_id)
+    return "Link deleted successfully"
 
 @app.route("/api/top")
 def get_limit_top_links():

@@ -46,7 +46,7 @@ def create_short_link(url):
             continue
 
 def get_match(code):
-    cursor.execute("SELECT id, url FROM links WHERE short_code = ?", (code,))
+    cursor.execute("SELECT id, url FROM links WHERE short_code = ? AND deleted_at IS NULL", (code,))
     result = cursor.fetchone()
     if result is None:
         return None
@@ -68,5 +68,12 @@ def get_top_links_by_clicks(limit):
                     GROUP BY links.id ORDER BY click_count DESC LIMIT ?""",(limit,))
     return cursor.fetchall()
 
+def delete_link(link_id):
+    cursor.execute("UPDATE links SET deleted_at = ? WHERE id = ?",(datetime.now().isoformat(), link_id))
+    connection.commit()
+
 if __name__ == "__main__":
-    print(get_top_links_by_clicks(2))
+    try:
+        cursor.execute("ALTER TABLE links ADD COLUMN deleted_at TEXT")
+    except sqlite3.OperationalError:
+        pass
