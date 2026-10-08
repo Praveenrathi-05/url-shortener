@@ -1,7 +1,13 @@
 from flask import Flask, redirect, request
 from database import get_match, create_short_link, log_click, get_top_links_by_clicks, delete_link
+from datetime import datetime
+
+LIMIT = 10
+WINDOW_SECONDS = 86400
 
 app = Flask(__name__)
+
+tally = {}
 
 @app.route("/")
 def home():
@@ -18,6 +24,15 @@ def redirect_to_url(code):
 
 @app.route("/create", methods=["POST"])
 def create():
+    address = request.remote_addr
+    tally[address] = tally.get(address, [])
+    if len(tally[address]) >= LIMIT:
+        first_timestamp = tally[address][0]
+        time_elapsed = datetime.now().timestamp() - first_timestamp.timestamp()
+        if time_elapsed < WINDOW_SECONDS:
+            return {"error": "you're sending too many requests"}, 429
+        tally[address] = tally[address][1:]
+    tally[address].append(datetime.now())
     data = request.get_json()
     url = data["url"]
     code = create_short_link(url)
